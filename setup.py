@@ -5,7 +5,7 @@ with open("README.md","r") as fh:
 
 setuptools.setup(
     name="geneticml", # Replace with your own username
-    version="1.1.5",
+    version="1.1.6",
     author="Moseli Motsoehli",
     author_email="moselim@hawaii.edu",
     description="Collection of Genetic algorithms for hyper-parameter optimization of common machine learning classifiers",
