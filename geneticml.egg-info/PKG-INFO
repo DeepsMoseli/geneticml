@@ -1,7 +1,7 @@
 Metadata-Version: 2.1
 Name: geneticml
-Version: 1.2.0
-Summary: Collection of Genetic algorithms for hyper-parameter optimization of common machine learning classifiers
+Version: 1.2.1
+Summary: Use pf Genetic algorithms for hyper-parameter optimization on common machine learning Algorithms on small arbitrary datasets.
 Home-page: https://github.com/DeepsMoseli/geneticml
 Author: Moseli Motsoehli
 Author-email: moselim@hawaii.edu
@@ -9,11 +9,11 @@ License: UNKNOWN
 Description: # geneticml
         
         ## About
-         This library uses a number of genetic algorithms to help you with aoutomated hyper-parameter optimization for most algorithms in sklear and some famous lone-stading ones such as XGBoost, Catboost, LightGMB.
+         This library uses genetic algorithms to for automated hyper-parameter optimization in Machine learning algorithms
         
         ## Supported Models 
-        Eventually all models with the __.fit__, __.predict__, __.predict_proba__ methods will be suported. This does not include keras, pytorch or tensorflow 2.0 models.
-        
+        Currently supports RandomForestClassifier, GradientBoostingClassifier, LogisticRegression, MLPClassifier.<br>
+        __coming soon:__ xgboost, lightboost, catboost, regression models and metrics.
         
         ## Usage 
         
