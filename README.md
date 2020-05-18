@@ -38,13 +38,13 @@ create the EA object
 
 ```python
 test = differential_evolution(x_train,
-								y_train, 
-								RandomForestClassifier, 
-								improvement = 0.1, 
-								population_size=10,
-								mutation_prob=0.13,
-								elitism=0.15,
-								crossover_prob=0.70)
+	y_train, 
+	RandomForestClassifier, 
+	improvement = 0.1, 
+	population_size=10,
+	mutation_prob=0.13,
+	elitism=0.15,
+	crossover_prob=0.70)
 
 ```
 
