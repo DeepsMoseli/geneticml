@@ -166,7 +166,6 @@ class differential_evolution:
         del self.x_train,self.x_test,self.y_train,self.y_test, self.X, self.Y
 
 
-
 ##############################################################################
 
 
