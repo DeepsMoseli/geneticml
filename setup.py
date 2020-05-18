@@ -5,7 +5,7 @@ with open("README.md","r") as fh:
 
 setuptools.setup(
     name="geneticml", # Replace with your own username
-    version="1.1.3",
+    version="1.1.5",
     author="Moseli Motsoehli",
     author_email="moselim@hawaii.edu",
     description="Collection of Genetic algorithms for hyper-parameter optimization of common machine learning classifiers",
@@ -19,5 +19,5 @@ setuptools.setup(
         "Operating System :: OS Independent",
     ],
     python_requires='>=3.6',
-    install_requires=['numpy','pandas','tqdm', 'pickle', 'scikit-learn'],
+    install_requires=['numpy','pandas','tqdm', 'scikit-learn'],
 )
