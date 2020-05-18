@@ -4,7 +4,7 @@
  This library uses genetic algorithms to for automated hyper-parameter optimization in Machine learning algorithms
 
 ## Supported Models 
-Currently supports RandomForestClassifier, GradientBoostingClassifier, LogisticRegression, MLPClassifier.
+Currently supports RandomForestClassifier, GradientBoostingClassifier, LogisticRegression, MLPClassifier.<br>
 __coming soon:__ xgboost, lightboost, catboost, regression models and metrics.
 
 ## Usage 
