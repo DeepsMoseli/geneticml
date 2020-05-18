@@ -16,7 +16,7 @@ import sys
 """DE: """
 
 class differential_evolution:
-    def __init__(self, X, Y, algorithm, email = False, improvement, population_size, mutation_prob, elitism, crossover_prob):
+    def __init__(self, X, Y, algorithm, improvement, population_size, mutation_prob, elitism, crossover_prob, email = False):
         self.algorithm = algorithm
         self.algo_name = algorithm().__class__.__name__
         self.improvement=improvement
