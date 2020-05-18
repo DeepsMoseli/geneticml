@@ -1,11 +1,11 @@
 # geneticml
 
 ## About
- This library uses a number of genetic algorithms to help you with aoutomated hyper-parameter optimization for most algorithms in sklear and some famous lone-stading ones such as XGBoost, Catboost, LightGMB.
+ This library uses genetic algorithms to for automated hyper-parameter optimization in Machine learning algorithms
 
 ## Supported Models 
-Eventually all models with the __.fit__, __.predict__, __.predict_proba__ methods will be suported. This does not include keras, pytorch or tensorflow 2.0 models.
-
+Currently supports RandomForestClassifier, GradientBoostingClassifier, LogisticRegression, MLPClassifier.
+__coming soon:__ xgboost, lightboost, catboost, regression models and metrics.
 
 ## Usage 
 
