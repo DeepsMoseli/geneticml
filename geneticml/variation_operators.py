@@ -167,7 +167,134 @@ class differential_evolution:
 
 
 ##############################################################################
+##############                   one plus one                  ############### 
+##############################################################################
 
+class one_plus_one:
+    def __init__(self, X, Y, algorithm, improvement = 0.1, mutation_prob = 0.9 , email=False):
+        self.algorithm = algorithm
+        self.algo_name = algorithm().__class__.__name__
+        self.improvement = improvement
+        self.population_size = 1
+        self.mutation_prob = mutation_prob
+        self.email = email
+        self.population = None
+        self.generation_params = []
+        self.new_population = None
+        self.fitness = {}
+        self.best = {"params":{},"score":0,'sklearn_score':0,'best_fitted_model':None}
 
+        self.target = 0.5 #initial target AUC equivalent to a random model
+        self.max_gen = 30 #Max number of generations
+        self.increase_thrashold = 0.2 #highest allowed improvement percentage
+        self.decay_generations = 4 #change mutation probabilities after x generations
+        self.nochange = 5 #stop process if there is no improvement in x generations
+        self.X=X
+        self.Y=Y
+        self.x_train,self.x_test,self.y_train,self.y_test = train_test_split(self.X,self.Y,
+                                                 test_size=0.2,random_state=42)
+        self.find_target() #calculates taget AUC as percentage of default out of the box sklearn model
+
+    def find_target(self):
+        default = self.algorithm()
+        ###test classification###
+        target_count_binary = len(set(self.y_train))==len(set(self.y_test))==2
+        if target_count_binary==True and self.improvement<=self.increase_thrashold:
+            default.fit(self.x_train,self.y_train)
+            pred = default.predict_proba(self.x_test)[:,1]
+            self.best['sklearn_score'] = roc_auc_score(self.y_test,pred)
+            self.target = min(1,self.best['sklearn_score']*(1+self.improvement))
+            print("EA optomization target set to AUC score of %s"%self.target)
+            print("----------------------------------------\n")
+        else:
+            sys.exit("Error: Only binary classification suported for less than %s improvement over base sklearn model."%self.thrashold)
+
+        
+    def random_genome(self):
+        Model_instance = Estimator(self.algorithm, randomize=True)
+        return Model_instance.params
+    
+    def mating(self,parent1): #self mating/mutation
+        offspring = {}
+        prob = random.random()
+        for k in parent1:
+            if prob>=(self.mutation_prob):
+                offspring[k] = parent1[k]
+            else:
+                offspring[k] = self.random_genome()[k]
+        return offspring
+    
+    def calc_fitness(self,individual):
+        try:
+            model_eval = Estimator(self.algorithm, params=individual)
+            model_eval.model.fit(self.x_train,self.y_train)
+            pred = model_eval.model.predict_proba(self.x_test)[:,1]
+            score = roc_auc_score(self.y_test,pred)
+            return score
+        except Exception as e:
+            print(e)
+            model_eval = Estimator(self.algorithm)
+            model_eval.model.fit(self.x_train,self.y_train)
+            pred = model_eval.model.predict_proba(self.x_test)[:,1]
+            score = roc_auc_score(self.y_test,pred)
+            return score
+    
+
+    def Main(self):
+        
+        #population init
+        Converged = False
+        Generation = 1
+        no_change_gens = 0
+        
+        #init
+        self.population = self.random_genome()
+        self.generation_params.append(self.population)
+        #----------------------------selection----------------------------
+        pbar = tqdm(range(self.max_gen))
+        
+        while(Converged==False):
+            print("Gen (%s)"%Generation)
+            """calc fitness and do selection"""
+            self.fitness["Generation %s"%Generation]= self.calc_fitness(self.population)
+            
+            self.best['score'] = self.fitness["Generation %s"%Generation]
+            self.best['params'] = self.population
+            print("(parent: %s): "%(self.best['score']))
+
+            #test convergence
+            if self.best['score']>=self.target or Generation>=self.max_gen or no_change_gens>self.nochange:
+                Converged=True
+                message = """Gen: %s 
+                SKlearn: %s 
+                Best: %s"""%("Converged",self.best["sklearn_score"],self.best["score"])
+                if self.email:
+                    mail=Email_pypy(message)
+            else:           
+                if Generation%4==0:
+                    message = """Gen: %s 
+                    SKlearn: %s 
+                    Best: %s"""%(Generation,self.best["sklearn_score"],self.best["score"])
+                    if self.email:
+                        mail=Email_pypy(message)
+
+                self.new_population = self.mating(self.population)
+                score_child = self.calc_fitness(self.new_population)
+                if score_child >= self.best['score']:
+                    self.population=self.new_population
+                    self.generation_params.append(self.population)
+                else:
+                    self.new_population=None
+                    no_change_gens+=1
+
+                Generation+=1 
+            pbar.update(1)
+            print("\n")
+
+        pbar.close()
+        print("Best model was fitted and returned.")
+        self.best['best_fitted_model'] = self.algorithm(**self.best['params'])
+        self.best['best_fitted_model'].fit(self.X,self.Y)
+        del self.x_train,self.x_test,self.y_train,self.y_test, self.X, self.Y
 
 

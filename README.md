@@ -65,4 +65,24 @@ roc_auc_score(y_test,test_pred)
 ```
 -----
 
+### One plus one EA with Gradient boosting
+
+```python
+
+from  geneticml.variation_operators import one_plus_one
+from sklearn.ensemble import GradientBoostingClassifier
+
+test2 = one_plus_one(x_train,
+	y_train, 
+	GradientBoostingClassifier, 
+	improvement = 0.1, 
+	mutation_prob = 0.9, 
+	email=False)
+
+test2.Main()
+
+#best model
+test2.best
+```
+
 
