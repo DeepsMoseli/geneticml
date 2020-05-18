@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: geneticml
-Version: 1.1.8
+Version: 1.1.9
 Summary: Collection of Genetic algorithms for hyper-parameter optimization of common machine learning classifiers
 Home-page: https://github.com/DeepsMoseli/geneticml
 Author: Moseli Motsoehli
