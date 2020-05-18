@@ -17,18 +17,43 @@ in your python script or ipynb
 
 ```python
 from  geneticml.variation_operators import differential_evolution 
-from geneticml.hyper_parameters import Estimator
 from sklearn.ensemble import RandomForestClassifier
+
+#sample data
+from sklearn.datasets import load_breast_cancer
+from sklearn.model_selection import train_test_split
 ```
 
 load your dataset in the X, y form. you can split your train and test data, but the code will create a validation set to test the evolution candidate's fitness.
 
+```python
+data =  load_breast_cancer()
+X = data.data
+y = data.target
+
+x_train,x_test,y_train,y_test = train_test_split(X,y,test_size=0.25,random_state=45)
+```
+
 create the EA object
 
 ```python
-test = differential_evolution(x_train, y_train, RandomForestClassifier, 0.1, population_size=10,mutation_prob=0.12,elitism=0.12,crossover_prob=0.84)
+test = differential_evolution(x_train,
+								y_train, 
+								RandomForestClassifier, 
+								improvement = 0.1, 
+								population_size=10,
+								mutation_prob=0.13,
+								elitism=0.15,
+								crossover_prob=0.70)
 
+```
+
+run EA search (might take time depending on dataset size)
+
+```python
 test.Main()
+
+#best model
 test.best
 ```
 
