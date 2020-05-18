@@ -149,7 +149,8 @@ class differential_evolution:
                 message = """Gen: %s 
                 SKlearn: %s 
                 Best: %s"""%("Converged",self.best["sklearn_score"],self.best["score"])
-                mail=Email_pypy(message)
+                if self.email:
+                    mail=Email_pypy(message)
             else:
                 if Generation>2 and abs(self.best["score"]-self.fitness["Generation %s"%Generation][-2])<0.001:
                     no_change_gens+=1
