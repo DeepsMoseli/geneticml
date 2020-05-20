@@ -10,7 +10,7 @@ __coming soon:__ xgboost, lightboost, catboost, regression models and metrics.
 ## Usage 
 
 ```python
-pip install geneticml
+pip install -i https://test.pypi.org/simple/ geneticml
 ```
 
 in your python script or ipynb
