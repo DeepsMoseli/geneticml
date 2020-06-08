@@ -111,15 +111,6 @@ class Estimator:
     def criterion(self,crit = None):
         switch = {0:'mse',1:'friedman_mse', 2:'mae'}
         return self.rand_or_get(switch, crit)
-    
-    def oob_score(self,oob = None):
-        switch = {0:True,1:False}
-        return self.rand_or_get(switch, crit)
-
-    def bootstrap(self,straps = None):
-        switch = {0:True,1:False}
-        return self.rand_or_get(switch, straps)
-
     ######################################################################
     ######################################################################
     """-------------------Linear(Logistic,svm)------------------------"""
@@ -181,9 +172,7 @@ class Estimator:
             "RandomForestRegressor":{
                 "n_estimators":self.n_estimators(),
                 "max_depth":self.max_depth(),
-                "max_features":self.max_features(),
-                "oob_score": self.oob_score(),
-                "bootstrap": self.bootstrap()
+                "max_features":self.max_features()
             },
             "GradientBoostingRegressor":{
                 "n_estimators": self.n_estimators(),

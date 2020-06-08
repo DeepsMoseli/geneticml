@@ -35,14 +35,19 @@ class differential_evolution:
 
         self.target = 0.5 #initial target AUC equivalent to a random model
         self.max_gen = 50 #Max number of generations
-        self.increase_thrashold = 0.2 #highest allowed improvement percentage
+        self.increase_thrashold = 0.5 #highest allowed improvement percentage
         self.decay_generations = 4 #change mutation probabilities after x generations
         self.nochange = 5 #stop process if there is no improvement in x generations
         self.X=X
         self.Y=Y
         self.x_train,self.x_test,self.y_train,self.y_test = train_test_split(self.X,self.Y,
-                                                 test_size=0.2,random_state=42)
+                                                 test_size=0.1,random_state=42)
         self.find_target() #calculates taget AUC as percentage of default out of the box sklearn model
+
+    def rand_train_data(self):
+        rand_state = np.random.randint(100)
+        self.x_train,self.x_test,self.y_train,self.y_test = train_test_split(self.X,self.Y,
+                                                 test_size=0.1,random_state=rand_state)
 
     def find_target(self):
         default = self.algorithm()
@@ -57,18 +62,22 @@ class differential_evolution:
 
         if self.improvement<=self.increase_thrashold:
             default.fit(self.x_train,self.y_train)
-            pred = default.predict_proba(self.x_test)[:,1]
-            self.best['sklearn_score'] = self.metric(self.y_test,pred)
-
+            
             if self.metric_name=="AUC":
+                pred = default.predict_proba(self.x_test)[:,1]
+                self.best['sklearn_score'] = self.metric(self.y_test,pred)
                 self.target = min(1,self.best['sklearn_score']*(1+self.improvement))
             else:
+                pred = default.predict(self.x_test)
+                self.best['sklearn_score'] = self.metric(self.y_test,pred)
                 self.target = max(0,self.best['sklearn_score']*(1-self.improvement))
-
-            print("EA optomization target set to %s of %s"%(self.metric_name,self.target))
-            print("----------------------------------------\n")
+                self.best['score'] =  self.best['sklearn_score']
+            print("################################################\n")
+            print("* Initial %s score: %s"%(self.metric_name,self.best['sklearn_score']))
+            print("* EA optimization target set to %s score: %s"%(self.metric_name,self.target))
+            print("#################################################\n")
         else:
-            sys.exit("Error: Only improvement of less than %s over base sklearn model."%self.thrashold)
+            sys.exit("Error: Only improvement of less than %s over base sklearn model."%self.increase_thrashold)
 
         
     def random_genome(self):
@@ -168,7 +177,9 @@ class differential_evolution:
             self.population=self.new_population
             self.new_population=[]
             self.generation_params.append(self.population)
+            self.rand_train_data()
             pbar.update(1)
+
             
             #Test stoping criteria, convergence, max-generations or no change, send mail for stop.
             if self.metric_name=="AUC":
@@ -361,5 +372,3 @@ class one_plus_one:
         self.best['best_fitted_model'] = self.algorithm(**self.best['params'])
         self.best['best_fitted_model'].fit(self.X,self.Y)
         del self.x_train,self.x_test,self.y_train,self.y_test, self.X, self.Y
-
-
