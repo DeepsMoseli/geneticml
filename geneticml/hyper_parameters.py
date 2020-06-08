@@ -4,11 +4,18 @@ import warnings
 from tqdm import tqdm
 import pickle
 warnings.simplefilter("ignore")
+import sys
 
+#classifiers
 from sklearn.ensemble import RandomForestClassifier,GradientBoostingClassifier
 from sklearn.neural_network import MLPClassifier
 from sklearn.linear_model import LogisticRegression
 from sklearn.svm import LinearSVC
+
+#regressors
+from sklearn.tree import DecisionTreeRegressor
+from sklearn.ensemble import RandomForestRegressor, GradientBoostingRegressor
+
 
 class Estimator:
     """This class defines the model with random or passed hyper-parameters"""
@@ -22,8 +29,8 @@ class Estimator:
             except Exception as e:
                 print(e)
                 print("The estimator %s is currently not supported."%self.algo_name)
-                print("If you would really like to use this specific classifier, send us a mail as we will add it.")
-                return "Exit Code: 1"
+                print("If you would really like to use this specific estimator, send us a mail as we will add it.")
+                sys.exit("Exit Code: 1")
         else:
             self.params = params
         self.model = self.algorithm(**self.params)
@@ -80,7 +87,7 @@ class Estimator:
     
     ################################################################
     ################################################################
-    """ ---------Ensemble(ada, forrest, gradient,  )---------"""
+    """ ---------Ensemble(ada, forrest, gradient, decisionTree )---------"""
     def n_estimators(self,n = None):
         if n is not None:
             return n
@@ -97,6 +104,21 @@ class Estimator:
         switch = {0:None,1:"auto",2:"log2",3:"sqrt"}
         return self.rand_or_get(switch, feat)
 
+    def splitter(self, split = None):
+        switch = {0:'best',1:'random'}
+        return self.rand_or_get(switch, split)
+
+    def criterion(self,crit = None):
+        switch = {0:'mse',1:'friedman_mse', 2:'mae'}
+        return self.rand_or_get(switch, crit)
+    
+    def oob_score(self,oob = None):
+        switch = {0:True,1:False}
+        return self.rand_or_get(switch, crit)
+
+    def bootstrap(self,straps = None):
+        switch = {0:True,1:False}
+        return self.rand_or_get(switch, straps)
 
     ######################################################################
     ######################################################################
@@ -149,6 +171,24 @@ class Estimator:
                 "penalty":self.penalty(),
                 "max_iter":self.max_iter(),
                 "dual":self.dual()
+            },
+            "DecisionTreeRegressor":{
+                "criterion":self.criterion(),
+                "splitter": self.splitter(),
+                "max_depth":self.max_depth(),
+                "max_features":self.max_features()
+            },
+            "RandomForestRegressor":{
+                "n_estimators":self.n_estimators(),
+                "max_depth":self.max_depth(),
+                "max_features":self.max_features(),
+                "oob_score": self.oob_score(),
+                "bootstrap": self.bootstrap()
+            },
+            "GradientBoostingRegressor":{
+                "n_estimators": self.n_estimators(),
+                "max_depth":self.max_depth(),
+                "max_features":self.max_features()
             }
         }
         return lookuptable[algo]

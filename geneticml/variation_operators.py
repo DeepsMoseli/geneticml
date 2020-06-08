@@ -68,7 +68,7 @@ class differential_evolution:
             print("EA optomization target set to %s of %s"%(self.metric_name,self.target))
             print("----------------------------------------\n")
         else:
-            sys.exit("Error: Only improvement of less than %s over base sklearn model."%self.thrashold)
+            sys.exit("Error: Only improvement of less than %s over base sklearn model."%self.increase_thrashold)
 
         
     def random_genome(self):
@@ -361,5 +361,3 @@ class one_plus_one:
         self.best['best_fitted_model'] = self.algorithm(**self.best['params'])
         self.best['best_fitted_model'].fit(self.X,self.Y)
         del self.x_train,self.x_test,self.y_train,self.y_test, self.X, self.Y
-
-
