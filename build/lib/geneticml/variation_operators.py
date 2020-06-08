@@ -1,4 +1,4 @@
-from sklearn.metrics import accuracy_score,roc_auc_score
+from sklearn.metrics import accuracy_score,roc_auc_score, mean_squared_error, mean_absolute_error
 from sklearn.model_selection import train_test_split
 from geneticml.hyper_parameters import Estimator
 from geneticml.email_train import Email_pypy
@@ -30,6 +30,8 @@ class differential_evolution:
         self.fitness = {}
         self.best = {"params":{},"score":0,'sklearn_score':0,'best_fitted_model':None}
         self.email = email
+        self.metric_name =''
+        self.metric = None
 
         self.target = 0.5 #initial target AUC equivalent to a random model
         self.max_gen = 50 #Max number of generations
@@ -46,15 +48,27 @@ class differential_evolution:
         default = self.algorithm()
         ###test classification###
         target_count_binary = len(set(self.y_train))==len(set(self.y_test))==2
-        if target_count_binary==True and self.improvement<=self.increase_thrashold:
+        if target_count_binary == True:
+            self.metric = roc_auc_score
+            self.metric_name = "AUC"
+        else:
+            self.metric =  mean_squared_error
+            self.metric_name = "MSE"
+
+        if self.improvement<=self.increase_thrashold:
             default.fit(self.x_train,self.y_train)
             pred = default.predict_proba(self.x_test)[:,1]
-            self.best['sklearn_score'] = roc_auc_score(self.y_test,pred)
-            self.target = min(1,self.best['sklearn_score']*(1+self.improvement))
-            print("EA optomization target set to AUC score of %s"%self.target)
+            self.best['sklearn_score'] = self.metric(self.y_test,pred)
+
+            if self.metric_name=="AUC":
+                self.target = min(1,self.best['sklearn_score']*(1+self.improvement))
+            else:
+                self.target = max(0,self.best['sklearn_score']*(1-self.improvement))
+
+            print("EA optomization target set to %s of %s"%(self.metric_name,self.target))
             print("----------------------------------------\n")
         else:
-            sys.exit("Error: Only binary classification suported for less than %s improvement over base sklearn model."%self.thrashold)
+            sys.exit("Error: Only improvement of less than %s over base sklearn model."%self.thrashold)
 
         
     def random_genome(self):
@@ -79,15 +93,23 @@ class differential_evolution:
         try:
             model_eval = Estimator(self.algorithm, params=individual)
             model_eval.model.fit(self.x_train,self.y_train)
-            pred = model_eval.model.predict_proba(self.x_test)[:,1]
-            score = roc_auc_score(self.y_test,pred)
+            if self.metric_name=="AUC":
+                pred = model_eval.model.predict_proba(self.x_test)[:,1]
+            else:
+                pred = model_eval.model.predict(self.x_test)
+
+            score = self.metric(self.y_test, pred)
             return score
         except Exception as e:
             print(e)
             model_eval = Estimator(self.algorithm)
             model_eval.model.fit(self.x_train,self.y_train)
-            pred = model_eval.model.predict_proba(self.x_test)[:,1]
-            score = roc_auc_score(self.y_test,pred)
+            if self.metric_name=="AUC":
+                pred = model_eval.model.predict_proba(self.x_test)[:,1]
+            else:
+                pred = model_eval.model.predict(self.x_test)
+
+            score = self.metric(self.y_test,pred)
             return score
     
     def adaptive_probs(self):
@@ -112,8 +134,13 @@ class differential_evolution:
             """calc fitness and do selection"""
             self.fitness["Generation %s"%Generation]= list(map(self.calc_fitness,self.population))
             
-            sortedindexes =  list(np.flip(np.argsort(self.fitness["Generation %s"%Generation])))
-            self.best['score'] = max(self.best['score'],pd.Series(self.fitness["Generation %s"%Generation])[sortedindexes[0]])
+            if self.metric_name=="AUC":
+                sortedindexes =  list(np.flip(np.argsort(self.fitness["Generation %s"%Generation])))
+                self.best['score'] = max(self.best['score'],pd.Series(self.fitness["Generation %s"%Generation])[sortedindexes[0]])
+            else:
+                sortedindexes =  list(np.argsort(self.fitness["Generation %s"%Generation]))
+                self.best['score'] = min(self.best['score'],pd.Series(self.fitness["Generation %s"%Generation])[sortedindexes[0]])
+
             self.best['params'] = pd.Series(self.population)[sortedindexes[0]]
             print("(best: %s, Avg: %s): "%(self.best['score'],np.mean(self.fitness["Generation %s"%Generation])))
             
@@ -144,7 +171,12 @@ class differential_evolution:
             pbar.update(1)
             
             #Test stoping criteria, convergence, max-generations or no change, send mail for stop.
-            if self.best['score']>=self.target or Generation>=self.max_gen or no_change_gens>self.nochange:
+            if self.metric_name=="AUC":
+               condition = self.best['score']>=self.target 
+            else:
+                condition = self.best['score']<=self.target
+
+            if condition or Generation>=self.max_gen or no_change_gens>self.nochange:
                 Converged=True
                 message = """Gen: %s 
                 SKlearn: %s 
@@ -183,6 +215,8 @@ class one_plus_one:
         self.new_population = None
         self.fitness = {}
         self.best = {"params":{},"score":0,'sklearn_score':0,'best_fitted_model':None}
+        self.metric_name = ''
+        self.metric = None
 
         self.target = 0.5 #initial target AUC equivalent to a random model
         self.max_gen = 30 #Max number of generations
@@ -199,15 +233,27 @@ class one_plus_one:
         default = self.algorithm()
         ###test classification###
         target_count_binary = len(set(self.y_train))==len(set(self.y_test))==2
-        if target_count_binary==True and self.improvement<=self.increase_thrashold:
+        if target_count_binary == True:
+            self.metric = roc_auc_score
+            self.metric_name = "AUC"
+        else:
+            self.metric =  mean_squared_error
+            self.metric_name = "MSE"
+
+        if self.improvement<=self.increase_thrashold:
             default.fit(self.x_train,self.y_train)
             pred = default.predict_proba(self.x_test)[:,1]
-            self.best['sklearn_score'] = roc_auc_score(self.y_test,pred)
-            self.target = min(1,self.best['sklearn_score']*(1+self.improvement))
-            print("EA optomization target set to AUC score of %s"%self.target)
+            self.best['sklearn_score'] = self.metric(self.y_test,pred)
+
+            if self.metric_name=="AUC":
+                self.target = min(1,self.best['sklearn_score']*(1+self.improvement))
+            else:
+                self.target = max(0,self.best['sklearn_score']*(1-self.improvement))
+
+            print("EA optomization target set to %s of %s"%(self.metric_name,self.target))
             print("----------------------------------------\n")
         else:
-            sys.exit("Error: Only binary classification suported for less than %s improvement over base sklearn model."%self.thrashold)
+            sys.exit("Error: Only improvement of less than %s over base sklearn model."%self.increase_thrashold)
 
         
     def random_genome(self):
@@ -228,15 +274,23 @@ class one_plus_one:
         try:
             model_eval = Estimator(self.algorithm, params=individual)
             model_eval.model.fit(self.x_train,self.y_train)
-            pred = model_eval.model.predict_proba(self.x_test)[:,1]
-            score = roc_auc_score(self.y_test,pred)
+            if self.metric_name=="AUC":
+                pred = model_eval.model.predict_proba(self.x_test)[:,1]
+            else:
+                pred = model_eval.model.predict(self.x_test)
+
+            score = self.metric(self.y_test, pred)
             return score
         except Exception as e:
             print(e)
             model_eval = Estimator(self.algorithm)
             model_eval.model.fit(self.x_train,self.y_train)
-            pred = model_eval.model.predict_proba(self.x_test)[:,1]
-            score = roc_auc_score(self.y_test,pred)
+            if self.metric_name=="AUC":
+                pred = model_eval.model.predict_proba(self.x_test)[:,1]
+            else:
+                pred = model_eval.model.predict(self.x_test)
+
+            score = self.metric(self.y_test,pred)
             return score
     
 
@@ -262,8 +316,13 @@ class one_plus_one:
             self.best['params'] = self.population
             print("(parent: %s): "%(self.best['score']))
 
+            if self.metric_name=="AUC":
+                condition = self.best['score']>=self.target 
+            else:
+                condition = self.best['score']<=self.target
+
             #test convergence
-            if self.best['score']>=self.target or Generation>=self.max_gen or no_change_gens>self.nochange:
+            if condition or Generation>=self.max_gen or no_change_gens>self.nochange:
                 Converged=True
                 message = """Gen: %s 
                 SKlearn: %s 
@@ -280,7 +339,13 @@ class one_plus_one:
 
                 self.new_population = self.mating(self.population)
                 score_child = self.calc_fitness(self.new_population)
-                if score_child >= self.best['score']:
+
+                if self.metric_name=="AUC":
+                    better = score_child >= self.best['score'] 
+                else:
+                    better = score_child<=self.best['score']
+
+                if better:
                     self.population=self.new_population
                     self.generation_params.append(self.population)
                 else:

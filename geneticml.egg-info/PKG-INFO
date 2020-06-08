@@ -18,7 +18,7 @@ Description: # geneticml
         ## Usage 
         
         ```python
-        pip install geneticml
+        pip install -i https://test.pypi.org/simple/ geneticml
         ```
         
         in your python script or ipynb
@@ -81,11 +81,11 @@ Description: # geneticml
         from sklearn.ensemble import GradientBoostingClassifier
         
         test2 = one_plus_one(x_train,
-        y_train, 
-        GradientBoostingClassifier, 
-        improvement = 0.1, 
-        mutation_prob = 0.9, 
-        email=False):
+        	y_train, 
+        	GradientBoostingClassifier, 
+        	improvement = 0.1, 
+        	mutation_prob = 0.9, 
+        	email=False)
         
         test2.Main()
         
