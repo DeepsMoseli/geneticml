@@ -1,4 +1,4 @@
-from sklearn.metrics import accuracy_score,roc_auc_score, mean_squared_error, mean_absolute_error
+from sklearn.metrics import accuracy_score,roc_auc_score, mean_squared_error, r2_score
 from sklearn.model_selection import train_test_split
 from geneticml.hyper_parameters import Estimator
 from geneticml.email_train import Email_pypy
@@ -57,8 +57,8 @@ class differential_evolution:
             self.metric = roc_auc_score
             self.metric_name = "AUC"
         else:
-            self.metric =  mean_squared_error
-            self.metric_name = "MSE"
+            self.metric =  r2_score
+            self.metric_name = "R2"
 
         if self.improvement<=self.increase_thrashold:
             default.fit(self.x_train,self.y_train)
@@ -143,7 +143,7 @@ class differential_evolution:
             """calc fitness and do selection"""
             self.fitness["Generation %s"%Generation]= list(map(self.calc_fitness,self.population))
             
-            if self.metric_name=="AUC":
+            if self.metric_name in ["AUC","R2"]:
                 sortedindexes =  list(np.flip(np.argsort(self.fitness["Generation %s"%Generation])))
                 self.best['score'] = max(self.best['score'],pd.Series(self.fitness["Generation %s"%Generation])[sortedindexes[0]])
             else:
@@ -182,10 +182,7 @@ class differential_evolution:
 
             
             #Test stoping criteria, convergence, max-generations or no change, send mail for stop.
-            if self.metric_name=="AUC":
-               condition = self.best['score']>=self.target 
-            else:
-                condition = self.best['score']<=self.target
+            condition = self.best['score']>=self.target 
 
             if condition or Generation>=self.max_gen or no_change_gens>self.nochange:
                 Converged=True
@@ -248,18 +245,21 @@ class one_plus_one:
             self.metric = roc_auc_score
             self.metric_name = "AUC"
         else:
-            self.metric =  mean_squared_error
-            self.metric_name = "MSE"
+            self.metric =  r2_score
+            self.metric_name = "R2"
 
         if self.improvement<=self.increase_thrashold:
             default.fit(self.x_train,self.y_train)
-            pred = default.predict_proba(self.x_test)[:,1]
-            self.best['sklearn_score'] = self.metric(self.y_test,pred)
 
             if self.metric_name=="AUC":
-                self.target = min(1,self.best['sklearn_score']*(1+self.improvement))
+                pred = default.predict_proba(self.x_test)[:,1]
+                self.best['sklearn_score'] = self.metric(self.y_test,pred)
+                #self.target = min(1,self.best['sklearn_score']*(1+self.improvement))
             else:
-                self.target = max(0,self.best['sklearn_score']*(1-self.improvement))
+                pred = default.predict(self.x_test)
+                self.best['sklearn_score'] = self.metric(self.y_test,pred)
+                #self.target = max(0,self.best['sklearn_score']*(1+self.improvement))
+            self.target = min(1,self.best['sklearn_score']*(1+self.improvement))
 
             print("EA optomization target set to %s of %s"%(self.metric_name,self.target))
             print("----------------------------------------\n")
@@ -327,10 +327,7 @@ class one_plus_one:
             self.best['params'] = self.population
             print("(parent: %s): "%(self.best['score']))
 
-            if self.metric_name=="AUC":
-                condition = self.best['score']>=self.target 
-            else:
-                condition = self.best['score']<=self.target
+            condition = self.best['score']>=self.target 
 
             #test convergence
             if condition or Generation>=self.max_gen or no_change_gens>self.nochange:
@@ -351,10 +348,7 @@ class one_plus_one:
                 self.new_population = self.mating(self.population)
                 score_child = self.calc_fitness(self.new_population)
 
-                if self.metric_name=="AUC":
-                    better = score_child >= self.best['score'] 
-                else:
-                    better = score_child<=self.best['score']
+                better = score_child >= self.best['score'] 
 
                 if better:
                     self.population=self.new_population
