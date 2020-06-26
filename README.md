@@ -48,7 +48,8 @@ test = differential_evolution(x_train,
 	population_size=10,
 	mutation_prob=0.13,
 	elitism=0.15,
-	crossover_prob=0.70)
+	crossover_prob=0.70,
+	max_gen = 20)
 
 ```
 
@@ -81,6 +82,7 @@ test2 = one_plus_one(x_train,
 	GradientBoostingClassifier, 
 	improvement = 0.1, 
 	mutation_prob = 0.9, 
+	max_gen = 20,
 	email=False)
 
 test2.Main()

@@ -16,7 +16,7 @@ import sys
 """DE: """
 
 class differential_evolution:
-    def __init__(self, X, Y, algorithm, improvement, population_size, mutation_prob, elitism, crossover_prob, email = False):
+    def __init__(self, X, Y, algorithm, improvement = 0.1 , population_size = 20, mutation_prob = 0.2, elitism = 0.05, crossover_prob = 0.75, max_gen = 20, email = False):
         self.algorithm = algorithm
         self.algo_name = algorithm().__class__.__name__
         self.improvement=improvement
@@ -34,7 +34,7 @@ class differential_evolution:
         self.metric = None
 
         self.target = 0.5 #initial target AUC equivalent to a random model
-        self.max_gen = 50 #Max number of generations
+        self.max_gen = max_gen #Max number of generations
         self.increase_thrashold = 0.5 #highest allowed improvement percentage
         self.decay_generations = 4 #change mutation probabilities after x generations
         self.nochange = 5 #stop process if there is no improvement in x generations
@@ -70,7 +70,7 @@ class differential_evolution:
             else:
                 pred = default.predict(self.x_test)
                 self.best['sklearn_score'] = self.metric(self.y_test,pred)
-                self.target = max(0,self.best['sklearn_score']*(1-self.improvement))
+                self.target = max(0,self.best['sklearn_score']*(1+self.improvement))
                 self.best['score'] =  self.best['sklearn_score']
             print("################################################\n")
             print("* Initial %s score: %s"%(self.metric_name,self.best['sklearn_score']))
@@ -211,7 +211,7 @@ class differential_evolution:
 ##############################################################################
 
 class one_plus_one:
-    def __init__(self, X, Y, algorithm, improvement = 0.1, mutation_prob = 0.9 , email=False):
+    def __init__(self, X, Y, algorithm, improvement = 0.1, mutation_prob = 0.9 , max_gen = 20 , email=False):
         self.algorithm = algorithm
         self.algo_name = algorithm().__class__.__name__
         self.improvement = improvement
@@ -227,7 +227,7 @@ class one_plus_one:
         self.metric = None
 
         self.target = 0.5 #initial target AUC equivalent to a random model
-        self.max_gen = 30 #Max number of generations
+        self.max_gen = max_gen #Max number of generations
         self.increase_thrashold = 0.2 #highest allowed improvement percentage
         self.decay_generations = 4 #change mutation probabilities after x generations
         self.nochange = 5 #stop process if there is no improvement in x generations
